@@ -15,11 +15,11 @@ export async function GET(request) {
 }
 
 export async function POST(request) {
-  const { body } = await request;
+  const body = await request.json();
+
+  // Assuming passed data is in JSON format: { fullName, email, mobile, password }
 
   console.log(body);
-  // Assuming passed data is in JSON format: { fullName, email, mobile, password }
-  const { fullName, studentID, email, mobile, password } = JSON.parse(body);
 
   // Save user data to the database or perform other operations as needed
 
