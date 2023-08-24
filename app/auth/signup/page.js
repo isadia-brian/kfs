@@ -296,7 +296,7 @@ const Login = () => {
                 Already have an account?
                 <span>
                   <Link
-                    href="/login"
+                    href="/auth/login"
                     className="text-black font-bold text-[13px]"
                   >
                     {" "}

@@ -34,7 +34,7 @@ export async function POST(request) {
 export async function PUT(request) {
   const { body } = await request.json();
   // Assuming passed data is in JSON format: { studentID, fullName, email, mobile }
-  const { studentID, fullName, email, mobile, password } = JSON.parse(body);
+  const { studentID, fullName, email, mobile, password } = body;
 
   // Update user data in the database or perform other operations as needed
 
@@ -49,7 +49,7 @@ export async function PUT(request) {
 export async function PATCH(request) {
   const { body } = await request.json();
   // Assuming passed data is in JSON format: { studentID, fullName }
-  const { studentID, fullName } = JSON.parse(body);
+  const { studentID, fullName } = body;
 
   // Perform partial update of user data in the database or perform other operations as needed
 

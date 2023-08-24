@@ -41,19 +41,30 @@ const Login = () => {
         </div>
         <div className="h-screen px-4  w-full md:w-[45%] md:px-20">
           <div className="h-screen flex flex-col justify-center  w-full">
-            <div className="w-full flex justify-center">
-              <h4 className="font-black text-4xl uppercase">Sign In</h4>
-            </div>
-            <div className="w-full my-8 flex justify-center">
-              <div className="relative h-20 w-20 rounded-full border border-red-300/100">
-                {/* <Image
-                  src="/logo2.png"
+            <div className="w-full mb-20 md:mb-12 flex items-center justify-center">
+              <div className="relative h-24 w-24">
+                <Image
+                  src="/images/logo.png"
                   fill
                   alt="logo"
-                  className="object-contain"
-                /> */}
+                  className="object-cover"
+                />
+              </div>
+              <div className="">
+                <h3 className="font-black text-black text-2xl underline ">
+                  KENYA FILM
+                </h3>
+                <h5 className="font-black text-green-600 text-2xl -mt-1 text-center">
+                  SCHOOL
+                </h5>
               </div>
             </div>
+            <div className="w-full flex justify-center">
+              <h4 className="font-black text-xl mb-4 underline uppercase">
+                Sign In
+              </h4>
+            </div>
+
             <form className=" flex flex-col" onSubmit={handleSubmit(onSubmit)}>
               <div className="flex flex-col space-y-2 mb-5 w-full">
                 <label htmlFor="studentNumber" className="font-medium text-sm ">
@@ -142,12 +153,12 @@ const Login = () => {
                 </button>
               </div>
             </form>
-            <div className="w-full text-center mt-20">
+            <div className="w-full text-center mt-16">
               <p className="text-[11px] text-slate-500">
                 Don't have an account?
                 <span>
                   <Link
-                    href="/signup"
+                    href="/auth/signup"
                     className="text-black font-bold text-[13px]"
                   >
                     {" "}
