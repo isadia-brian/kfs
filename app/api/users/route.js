@@ -64,7 +64,7 @@ export async function PATCH(request) {
 export async function DELETE(request) {
   const { body } = await request.json();
   // Assuming passed data is in JSON format: { studentID }
-  const { studentID } = JSON.parse(body);
+  const { studentID } = body;
 
   // Delete user data from the database or perform other operations as needed
 

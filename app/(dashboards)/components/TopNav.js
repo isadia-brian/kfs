@@ -1,9 +1,10 @@
 import { RiSearch2Line } from "react-icons/ri";
-const studentHome = () => {
+
+const TopNav = () => {
   return (
-    <div className=" px-4  w-fit">
-      <div className="py-8 border-b-[0.8px] border-slate-400">
-        <div className="flex space-x-3 items-center border-b-[0.8px] ">
+    <div className=" px-4 w-full border-b-[0.8px]">
+      <div className="py-8 flex justify-between w-full  border-slate-400">
+        <div className="flex space-x-3 items-center border-b-[0.8px] pb-1 ">
           <input
             type="text"
             placeholder="Search for anything"
@@ -18,4 +19,4 @@ const studentHome = () => {
   );
 };
 
-export default studentHome;
+export default TopNav;
