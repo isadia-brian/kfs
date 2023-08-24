@@ -17,6 +17,7 @@ export function middleware(request) {
     "Content-Type, Authorization"
   );
   response.headers.set("Access-Control-Max-Age", "86400");
+  // add application/json contenttype
 
   console.log("Middleware!");
   console.log(request.method);

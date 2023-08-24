@@ -32,7 +32,7 @@ export async function POST(request) {
 }
 
 export async function PUT(request) {
-  const { body } = request;
+  const { body } = await request.json();
   // Assuming passed data is in JSON format: { studentID, fullName, email, mobile }
   const { studentID, fullName, email, mobile, password } = JSON.parse(body);
 
@@ -47,7 +47,7 @@ export async function PUT(request) {
 }
 
 export async function PATCH(request) {
-  const { body } = request;
+  const { body } = await request.json();
   // Assuming passed data is in JSON format: { studentID, fullName }
   const { studentID, fullName } = JSON.parse(body);
 
@@ -62,7 +62,7 @@ export async function PATCH(request) {
 }
 
 export async function DELETE(request) {
-  const { body } = request;
+  const { body } = await request.json();
   // Assuming passed data is in JSON format: { studentID }
   const { studentID } = JSON.parse(body);
 
