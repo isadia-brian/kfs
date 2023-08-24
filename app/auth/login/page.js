@@ -6,12 +6,7 @@ import { Switch } from "antd";
 import Image from "next/image";
 import Link from "next/link";
 
-import { useState } from "react";
-
 const Login = () => {
-  // const [user, setUser] = useState("");
-  // const [password, setPassword] = useState("");
-
   const {
     register,
     handleSubmit,
@@ -36,6 +31,7 @@ const Login = () => {
               alt="student image"
               fill
               className="object-cover"
+              priority="true"
             />
           </div>
         </div>

@@ -20,17 +20,18 @@ const Login = () => {
   return (
     <div>
       <div className="flex items-center md:flex-row-reverse">
-        <div className="hidden md:flex h-screen w-[50%]">
+        <div className="hidden md:flex md:h-screen w-[50%]">
           <div className="relative h-full w-full">
             <Image
               src="/images/image.jpg"
               alt="student image"
               fill
               className="object-cover"
+              priority="true"
             />
           </div>
         </div>
-        <div className="h-full px-4 md:px-24 w-full  md:w-[50%]">
+        <div className="h-full px-4 md:px-12 lg:px-20 w-full  md:w-[50%]">
           <div className="pt-10">
             <h5 className="text-[19px] font-medium md:text-[32px] md:font-black">
               Let's Get Started
