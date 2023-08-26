@@ -1,8 +1,16 @@
 import "./globals.css";
 import localFont from "next/font/local";
+import Provider from "@/app/context/client-provider";
+import { getServerSession } from "next-auth/next";
 import { Inter } from "next/font/google";
+import { authOptions } from "./api/auth/[...nextauth]/route";
 
 const inter = Inter({ subsets: ["latin"] });
+
+export const metadata = {
+  title: "Kenya Film School",
+  description: `Kenya Film School Portal`,
+};
 
 const poppins = localFont({
   src: [
@@ -54,15 +62,13 @@ const poppins = localFont({
   ],
 });
 
-export const metadata = {
-  title: "Kenya Film School",
-  description: `Student's Portal for Kenya Film School`,
-};
-
-export default function RootLayout({ children }) {
+export default async function RootLayout({ children }) {
+  const session = await getServerSession(authOptions);
   return (
     <html lang="en">
-      <body className={`${poppins.className}`}>{children}</body>
+      <body className={`${poppins.className}`}>
+        <Provider session={session}>{children}</Provider>
+      </body>
     </html>
   );
 }

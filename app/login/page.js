@@ -1,21 +1,41 @@
 "use client";
-
+import { useState } from "react";
 import { useForm } from "react-hook-form";
-
+import { signIn } from "next-auth/react";
 import { Switch } from "antd";
 import Image from "next/image";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 
 const Login = () => {
+  const router = useRouter();
+  const [error, setError] = useState("");
+
+  const [loading, setLoading] = useState(false);
+  const [success, setSuccess] = useState(false);
   const {
     register,
     handleSubmit,
 
     formState: { errors },
   } = useForm();
-  const onSubmit = (data) => {
-    console.log(data);
-    console.log("data posted");
+  const onSubmit = async ({ studentID, password }) => {
+    console.log(password);
+    setLoading(true);
+    const result = await signIn("credentials", {
+      redirect: false,
+      studentID,
+      password,
+    });
+
+    if (result.error) {
+      setError(result.error);
+      setLoading(false);
+    } else {
+      setLoading(false);
+      setSuccess(true);
+      router.push("/student");
+    }
   };
 
   const onChange = (checked) => {
@@ -63,31 +83,29 @@ const Login = () => {
 
             <form className=" flex flex-col" onSubmit={handleSubmit(onSubmit)}>
               <div className="flex flex-col space-y-2 mb-5 w-full">
-                <label htmlFor="studentNumber" className="font-medium text-sm ">
+                <label htmlFor="studentID" className="font-medium text-sm ">
                   Student ID
                 </label>
                 <input
-                  name="studentNumber"
-                  autoComplete="studentNumber"
+                  name="studentID"
+                  autoComplete="studentID"
                   type="text"
                   className={`w-full outline-none border px-4 py-3 rounded-xl placeholder:text-[9px] ${
-                    errors.studentNumber
-                      ? "border-red-500"
-                      : "border-slate-300 "
+                    errors.studentID ? "border-red-500" : "border-slate-300 "
                   }`}
-                  placeholder="KFS-222-444-555-666"
-                  {...register("studentNumber", {
+                  placeholder="KFS-2023-************"
+                  {...register("studentID", {
                     required: "true",
                     pattern: /^kfs-2023-\d{3}-\d{3}-\d{3}$/,
                   })}
                 />
-                {errors.studentNumber?.type === "required" ? (
+                {errors.studentID?.type === "required" ? (
                   <span className="text-xs text-red-500">
                     This field is required
                   </span>
-                ) : errors.studentNumber?.type === "pattern" ? (
+                ) : errors.studentID?.type === "pattern" ? (
                   <span className="text-xs text-red-500">
-                    This is not a student number
+                    This is not a student ID
                   </span>
                 ) : (
                   <></>
@@ -154,7 +172,7 @@ const Login = () => {
                 Don't have an account?
                 <span>
                   <Link
-                    href="/auth/signup"
+                    href="/signup"
                     className="text-black font-bold text-[13px]"
                   >
                     {" "}

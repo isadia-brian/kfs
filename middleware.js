@@ -1,8 +1,7 @@
-// middleware.js
-
 import { NextResponse } from "next/server";
+import { withAuth } from "next-auth/middleware";
 
-export function middleware(request) {
+export function customMiddleware(request) {
   const origin = request.headers.get("origin");
   console.log(origin);
 
@@ -25,6 +24,28 @@ export function middleware(request) {
 
   return response;
 }
+
+// combined custom middleware above with nextAuth middleware
+export default withAuth(
+  function combinedMiddleware(request) {
+    // Call your custom middleware functionality
+    customMiddleware(request);
+
+    // Call the NextAuth.js provided middleware functionality
+    // Modify and add your additional logic here
+    // ...
+  },
+  {
+    callbacks: {
+      authorized: ({ req, token }) => {
+        if (req.nextUrl.pathname.startsWith("/protected") && token === null) {
+          return false;
+        }
+        return true;
+      },
+    },
+  }
+);
 
 export const config = {
   matcher: "/api/:path*",

@@ -89,7 +89,7 @@ const Login = () => {
                 <input
                   type="text"
                   className="w-full text-sm outline-none border border-slate-300 px-4 py-3 rounded-xl placeholder:text-[9px]"
-                  placeholder="KFS-222-444-555-666"
+                  placeholder="KFS-2023-************"
                   {...register("studentNumber", {
                     required: "true",
                     pattern: /^kfs-2023-\d{3}-\d{3}-\d{3}$/,
@@ -297,7 +297,7 @@ const Login = () => {
                 Already have an account?
                 <span>
                   <Link
-                    href="/auth/login"
+                    href="/login"
                     className="text-black font-bold text-[13px]"
                   >
                     {" "}

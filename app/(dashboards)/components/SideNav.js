@@ -1,7 +1,6 @@
 import Image from "next/image";
 
 function SideNav(studentLinks) {
-  console.log(studentLinks);
   return (
     <section className="flex">
       <aside className=" space-y-20 text-black border-r-[0.6px] py-6 px-4 flex flex-col  h-screen">

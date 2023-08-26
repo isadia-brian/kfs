@@ -8,6 +8,11 @@ import {
   HiOutlineAcademicCap,
 } from "react-icons/hi2";
 
+export const metadata = {
+  title: "Dashboard",
+  description: `Kenya Film School Portal`,
+};
+
 const studentLinks = [
   {
     name: "Dashboard",

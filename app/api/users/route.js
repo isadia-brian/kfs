@@ -1,34 +1,82 @@
 import { NextResponse } from "next/server";
+import { connectMongoDB } from "@/lib/MongoConnect";
+import User from "@/models/UserSchema";
 
 export async function GET(request) {
-  const userData = {
-    studentID: "kfs-2023-213-213-213",
-    fullName: "John Doe",
-    email: "johndoe@gmail.com",
-    mobile: "+254796661363",
-    password: "Ab12345678",
-  };
-
-  const statusCode = 200; // success status code
-
-  return NextResponse.json({ data: userData }, { status: statusCode });
+  try {
+    await connectMongoDB();
+    const users = await User.find({});
+    const statusCode = 200; // success status code
+    return NextResponse.json({ users }, { status: statusCode });
+  } catch (error) {
+    return NextResponse.json(
+      { message: "Error Connecting", error },
+      { status: 503 }
+    );
+  }
 }
 
 export async function POST(request) {
   const body = await request.json();
 
   // Assuming passed data is in JSON format: { fullName, email, mobile, password }
+  const { fullName, password, studentID, mobileNumber, email } = body;
 
-  console.log(body);
+  if (
+    fullName == "" ||
+    password == "" ||
+    studentID == "" ||
+    mobileNumber == "" ||
+    email == ""
+  ) {
+    const statusCode = 400; // error status code
+    return NextResponse.json(
+      { message: "Fill in all fields" },
+      { status: statusCode }
+    );
+  } else {
+    try {
+      await connectMongoDB();
+      let userExist;
 
-  // Save user data to the database or perform other operations as needed
+      const query = { $or: [{ studentID: studentID }, { email: email }] };
 
-  const statusCode = 201; // created status code
+      userExist = await User.findOne(query);
 
-  return NextResponse.json(
-    { message: "User created successfully" },
-    { status: statusCode }
-  );
+      if (userExist) {
+        const statusCode = 400; // error status code
+        return NextResponse.json(
+          { message: "This user already exists" },
+          { status: statusCode }
+        );
+      } else {
+        const newUser = new User({
+          fullName,
+          password,
+          studentID,
+          mobileNumber,
+          email,
+        });
+
+        // Save user data to the database
+        await newUser.save();
+
+        const statusCode = 201; // created status code
+
+        return NextResponse.json(
+          { message: "User created successfully" },
+          { status: statusCode },
+          { data: newUser }
+        );
+      }
+    } catch (error) {
+      const statusCode = 400; // error status code
+      return NextResponse.json(
+        { message: "Error connecting to database", error },
+        { status: statusCode }
+      );
+    }
+  }
 }
 
 export async function PUT(request) {
