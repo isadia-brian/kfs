@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { connectMongoDB } from "@/lib/MongoConnect";
 import User from "@/models/UserSchema";
+import { hash } from "bcrypt";
 
 export async function GET(request) {
   try {
@@ -18,15 +19,17 @@ export async function GET(request) {
 
 export async function POST(request) {
   const body = await request.json();
+  let statusCode;
 
   // Assuming passed data is in JSON format: { fullName, email, mobile, password }
-  const { fullName, password, studentID, mobileNumber, email } = body;
+  const { fullName, password, studentNumber, username, mobile, email } = body;
 
   if (
     fullName == "" ||
     password == "" ||
-    studentID == "" ||
-    mobileNumber == "" ||
+    studentNumber == "" ||
+    mobile == "" ||
+    username == "" ||
     email == ""
   ) {
     const statusCode = 400; // error status code
@@ -39,38 +42,60 @@ export async function POST(request) {
       await connectMongoDB();
       let userExist;
 
-      const query = { $or: [{ studentID: studentID }, { email: email }] };
+      userExist = await User.findOne({ studentID: studentNumber });
+
+      const query = {
+        $or: [
+          { studentID: studentNumber },
+          { email: email },
+          { username: username },
+        ],
+      };
 
       userExist = await User.findOne(query);
 
-      if (userExist) {
-        const statusCode = 400; // error status code
-        return NextResponse.json(
-          { message: "This user already exists" },
-          { status: statusCode }
-        );
-      } else {
+      if (!userExist) {
+        const hashedPassword = await hash(password, 10);
+
         const newUser = new User({
           fullName,
-          password,
-          studentID,
-          mobileNumber,
+          password: hashedPassword,
+          studentID: studentNumber,
+          mobileNumber: mobile,
           email,
+          username,
         });
 
-        // Save user data to the database
         await newUser.save();
-
-        const statusCode = 201; // created status code
+        statusCode = 201; // created status code
 
         return NextResponse.json(
           { message: "User created successfully" },
-          { status: statusCode },
-          { data: newUser }
+          { status: statusCode }
+        );
+      }
+
+      if (userExist.studentID === studentNumber) {
+        statusCode = 409; // error status code
+        return NextResponse.json(
+          { message: "This student ID has been taken" },
+          { status: statusCode }
+        );
+      } else if (userExist.email === email) {
+        statusCode = 409; //error status code
+        return NextResponse.json(
+          { message: "This email has already been taken" },
+          { status: statusCode }
+        );
+      } else if (userExist.username === username) {
+        statusCode = 409; //error status code
+        return NextResponse.json(
+          { message: "This username has already been taken" },
+          { status: statusCode }
         );
       }
     } catch (error) {
-      const statusCode = 400; // error status code
+      statusCode = 400; // error status code
       return NextResponse.json(
         { message: "Error connecting to database", error },
         { status: statusCode }

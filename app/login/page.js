@@ -10,6 +10,7 @@ import { useRouter } from "next/navigation";
 const Login = () => {
   const router = useRouter();
   const [error, setError] = useState("");
+  const [inputError, setInputError] = useState(false);
 
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
@@ -19,17 +20,17 @@ const Login = () => {
 
     formState: { errors },
   } = useForm();
-  const onSubmit = async ({ studentID, password }) => {
-    console.log(password);
+  const onSubmit = async ({ userAuth, password }) => {
     setLoading(true);
     const result = await signIn("credentials", {
       redirect: false,
-      studentID,
+      userAuth,
       password,
     });
 
     if (result.error) {
       setError(result.error);
+      setInputError(true);
       setLoading(false);
     } else {
       setLoading(false);
@@ -82,30 +83,32 @@ const Login = () => {
             </div>
 
             <form className=" flex flex-col" onSubmit={handleSubmit(onSubmit)}>
+              {error ? (
+                <span className="text-sm text-red-500 mb-3">{error}</span>
+              ) : (
+                <></>
+              )}
               <div className="flex flex-col space-y-2 mb-5 w-full">
-                <label htmlFor="studentID" className="font-medium text-sm ">
-                  Student ID
+                <label htmlFor="userAuth" className="font-medium text-sm ">
+                  Student ID / Username
                 </label>
                 <input
-                  name="studentID"
-                  autoComplete="studentID"
+                  name="userAuth"
+                  autoComplete="userAuth"
                   type="text"
                   className={`w-full outline-none border px-4 py-3 rounded-xl placeholder:text-[9px] ${
-                    errors.studentID ? "border-red-500" : "border-slate-300 "
+                    errors.userAuth || inputError
+                      ? "border-red-500"
+                      : "border-slate-300"
                   }`}
-                  placeholder="KFS-2023-************"
-                  {...register("studentID", {
+                  placeholder="kfs-2023-*** or johnnyDoe"
+                  {...register("userAuth", {
                     required: "true",
-                    pattern: /^kfs-2023-\d{3}-\d{3}-\d{3}$/,
                   })}
                 />
-                {errors.studentID?.type === "required" ? (
+                {errors.userAuth?.type === "required" ? (
                   <span className="text-xs text-red-500">
                     This field is required
-                  </span>
-                ) : errors.studentID?.type === "pattern" ? (
-                  <span className="text-xs text-red-500">
-                    This is not a student ID
                   </span>
                 ) : (
                   <></>
@@ -120,11 +123,13 @@ const Login = () => {
                   autoComplete="password"
                   type="password"
                   className={`w-full outline-none border  px-4 py-3 rounded-xl placeholder:text-[9px] ${
-                    errors.password ? "border-red-500" : "border-slate-300"
+                    errors.password || inputError
+                      ? "border-red-500"
+                      : "border-slate-300"
                   }`}
                   placeholder="********"
                   {...register("password", {
-                    required: true,
+                    required: "true",
                     pattern: /^(?=.*[A-Z])(?=.*\d).{8,20}$/,
                   })}
                 />

@@ -4,27 +4,52 @@ import { connectMongoDB } from "@/lib/MongoConnect";
 import User from "@/models/UserSchema";
 import NextAuth from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
+import bcrypt from "bcrypt";
 
 export const authOptions = {
   providers: [
     CredentialsProvider({
       name: "Credentials",
       credentials: {
-        studentID: { label: "studentID", type: "text" },
+        userAuth: { label: "userAuth", type: "text" },
         password: { label: "password", type: "password" },
       },
-      async authorize(credentials, req) {
+      async authorize(credentials) {
         if (typeof credentials !== "undefined") {
           await connectMongoDB();
 
-          const user = await User.findOne({ studentID: credentials.studentID });
-          if (user && user.password === credentials.password) {
-            return { ...user.toObject(), apiToken: user.token };
-          } else {
-            return null;
+          const query = {
+            $or: [
+              { studentID: credentials.userAuth },
+              { username: credentials.userAuth },
+            ],
+          };
+
+          const user = await User.findOne(query);
+
+          if (user) {
+            const passwordMatch = await bcrypt.compare(
+              credentials.password,
+              user.password
+            );
+            if (!passwordMatch) {
+              throw new Error("Invalid credentials");
+            } else {
+              console.log("Passwords match");
+              const returnedUser = user.toObject();
+
+              const validateUser = {
+                fullName: returnedUser.fullName,
+                username: returnedUser.username,
+                studentID: returnedUser.studentID,
+                email: returnedUser.email,
+                mobileNumber: returnedUser.mobileNumber,
+              };
+              return { validateUser, apiToken: user.token };
+            }
           }
         } else {
-          return null;
+          throw new Error("Something went wrong");
         }
       },
     }),
@@ -58,13 +83,6 @@ export const authOptions = {
       }
       return token;
     },
-
-    // signIn: async (user, account, profile) => {
-    //   return Promise.resolve("/student");
-    // },
-    // signOut: async (user, account) => {
-    //   return Promise.resolve("/login");
-    // },
   },
 };
 

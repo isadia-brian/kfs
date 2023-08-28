@@ -3,22 +3,119 @@
 import Link from "next/link";
 import Image from "next/image";
 import { useForm } from "react-hook-form";
+import axios from "axios";
+import { BiErrorCircle } from "react-icons/bi";
 
-const Login = () => {
+import { notification, Spin } from "antd";
+import { useState } from "react";
+
+const Signup = () => {
+  const [loading, setLoading] = useState(false);
+  const [errorStudentID, setErrorStudentID] = useState(false);
+  const [errorUsername, setErrorUsername] = useState(false);
+  const [errorEmail, setErrorEmail] = useState(false);
+  const [error, setError] = useState(false);
+  const [success, setSuccess] = useState(false);
+  const [disabled, setDisabled] = useState(false);
+  const [api, contextHolder] = notification.useNotification();
+  const errorNotification = (type, message) => {
+    const notificationStyle = {
+      backgroundColor: "red",
+    };
+    api[type]({
+      message: <span className="text-white">Error</span>,
+      description: (
+        <span className="text-white font-bold text-[16px]">{message}</span>
+      ),
+      icon: <BiErrorCircle style={{ color: "#ffffff" }} />,
+      className: "custom-class",
+      style: notificationStyle,
+    });
+  };
+  const successNotification = (type, message) => {
+    const notificationStyle = {
+      backgroundColor: "green",
+    };
+    api[type]({
+      message: <span className="text-white">Success</span>,
+      description: (
+        <span className="text-white font-bold text-[16px]">{message}</span>
+      ),
+
+      className: "custom-class",
+      style: notificationStyle,
+    });
+  };
+
   const {
     handleSubmit,
     register,
-    watch,
     getValues,
     formState: { errors },
   } = useForm();
 
-  const onSubmit = (data) => {
-    console.log(data);
-    console.log("data posted");
+  const onSubmit = async (data) => {
+    let message;
+    setLoading(true);
+    const userDetails = {
+      fullName: data["name"],
+      studentNumber: data["studentNumber"],
+      email: data["email"],
+      mobile: data["mobile"],
+      username: data["username"],
+      password: data["password"],
+    };
+
+    try {
+      const response = await axios.post("/api/users", userDetails);
+      const success = response?.data?.message;
+      setLoading(false);
+      successNotification("success", success);
+    } catch (error) {
+      console.log(error);
+      const errorResponseString = error?.response?.request?.responseText;
+      const errorResponse = JSON.parse(errorResponseString);
+      message = errorResponse.message;
+      if (message === "This student ID has been taken") {
+        setErrorStudentID(true);
+
+        setLoading(false);
+        setError(true);
+        errorNotification("error", message);
+        setTimeout(() => {
+          setErrorStudentID(false);
+          setError(false);
+        }, 1500);
+      } else if (message === "This email has already been taken") {
+        setErrorEmail(true);
+        setLoading(false);
+        errorNotification("error", message);
+        setTimeout(() => {
+          setErrorEmail(false);
+          setError(false);
+        }, 1500);
+      } else if (message === "This username has already been taken") {
+        setErrorUsername(true);
+        setLoading(false);
+        errorNotification("error", message);
+        setTimeout(() => {
+          setErrorUsername(false);
+          setError(false);
+        }, 1500);
+      } else {
+        message = "Something went wrong";
+        setLoading(false);
+
+        errorNotification("error", message);
+        setTimeout(() => {
+          setError(false);
+        }, 1500);
+      }
+    }
   };
   return (
     <div>
+      {contextHolder}
       <div className="flex items-center md:flex-row-reverse">
         <div className="hidden md:flex md:h-screen w-[50%]">
           <div className="relative h-full w-full">
@@ -51,11 +148,13 @@ const Login = () => {
                 </label>
                 <input
                   type="text"
-                  className="w-full text-sm outline-none border border-slate-300 px-4 py-3 rounded-xl placeholder:text-[9px]"
+                  className={`w-full text-sm outline-none border px-4 py-3 rounded-xl placeholder:text-[9px] ${
+                    errors.name ? "border-red-500" : "border-slate-300"
+                  }`}
                   placeholder="John Doe"
                   {...register("name", {
                     required: "true",
-                    minLength: 4,
+                    minLength: 3,
                     maxLength: 50,
                   })}
                 />
@@ -82,32 +181,83 @@ const Login = () => {
                 )}
               </div>
 
-              <div className="flex flex-col space-y-1 mb-6 w-full">
-                <label htmlFor="studentNumber" className="font-medium text-sm">
-                  Student ID
-                </label>
-                <input
-                  type="text"
-                  className="w-full text-sm outline-none border border-slate-300 px-4 py-3 rounded-xl placeholder:text-[9px]"
-                  placeholder="KFS-2023-************"
-                  {...register("studentNumber", {
-                    required: "true",
-                    pattern: /^kfs-2023-\d{3}-\d{3}-\d{3}$/,
-                  })}
-                />
-                {errors.studentNumber?.type === "required" ? (
-                  <>
-                    <span className="text-xs text-red-500">ID is required</span>
-                  </>
-                ) : errors.studentNumber?.type === "pattern" ? (
-                  <>
-                    <span className="text-xs text-red-500">
-                      This is not a valid student ID
-                    </span>
-                  </>
-                ) : (
-                  <></>
-                )}
+              <div className="flex space-x-2 w-full">
+                <div className="flex flex-col space-y-1 mb-6 w-full">
+                  <label
+                    htmlFor="studentNumber"
+                    className="font-medium text-sm"
+                  >
+                    Student ID
+                  </label>
+                  <input
+                    type="text"
+                    className={`w-full text-sm outline-none border  px-4 py-3 rounded-xl placeholder:text-[9px] ${
+                      errors.studentNumber || errorStudentID
+                        ? "border-red-500"
+                        : "border-slate-300"
+                    }`}
+                    placeholder="kfs-2023-************"
+                    {...register("studentNumber", {
+                      required: "true",
+                      pattern: /^kfs-2023-\d{3}-\d{3}-\d{3}$/,
+                    })}
+                  />
+                  {errors.studentNumber?.type === "required" ? (
+                    <>
+                      <span className="text-xs text-red-500">
+                        ID is required
+                      </span>
+                    </>
+                  ) : errors.studentNumber?.type === "pattern" ? (
+                    <>
+                      <span className="text-xs text-red-500">
+                        This is not a valid student ID
+                      </span>
+                    </>
+                  ) : (
+                    <></>
+                  )}
+                </div>
+                <div className="flex flex-col space-y-1 mb-6 w-full">
+                  <label htmlFor="username" className="font-medium text-sm">
+                    Username
+                  </label>
+                  <input
+                    type="text"
+                    className={`w-full text-sm outline-none border px-4 py-3 rounded-xl placeholder:text-[9px] ${
+                      errors.username || errorUsername
+                        ? "border-red-500"
+                        : "border-slate-300"
+                    }`}
+                    placeholder="johnnyDoe"
+                    {...register("username", {
+                      required: "true",
+                      maxLength: 50,
+                      minLength: 4,
+                    })}
+                  />
+                  {errors.username?.type === "required" ? (
+                    <>
+                      <span className="text-xs text-red-500">
+                        Username is required
+                      </span>
+                    </>
+                  ) : errors.username?.type === "maxLength" ? (
+                    <>
+                      <span className="text-xs text-red-500">
+                        Username should be less than 50 characters
+                      </span>
+                    </>
+                  ) : errors.username?.type === "minLength" ? (
+                    <>
+                      <span className="text-xs text-red-500">
+                        Username can be 4 or more characters
+                      </span>
+                    </>
+                  ) : (
+                    <></>
+                  )}
+                </div>
               </div>
 
               <div className="flex flex-col space-y-1 mb-6  w-full">
@@ -116,7 +266,11 @@ const Login = () => {
                 </label>
                 <input
                   type="email"
-                  className="w-full text-sm outline-none border border-slate-300 px-4 py-3 rounded-xl placeholder:text-[9px]"
+                  className={`w-full text-sm outline-none border  px-4 py-3 rounded-xl placeholder:text-[9px] ${
+                    errors.email || errorEmail
+                      ? "border-red-500"
+                      : "border-slate-300"
+                  }`}
                   placeholder="johndoe@gmail.com"
                   {...register("email", {
                     required: "true",
@@ -146,7 +300,9 @@ const Login = () => {
                 </label>
                 <input
                   type="text"
-                  className="w-full text-sm outline-none border border-slate-300 px-4 py-3 rounded-xl placeholder:text-[9px]"
+                  className={`w-full text-sm outline-none border px-4 py-3 rounded-xl placeholder:text-[9px] ${
+                    errors.mobile ? "border-red-500" : "border-slate-300"
+                  }`}
                   placeholder="+2547......"
                   {...register("mobile", {
                     required: "true",
@@ -170,7 +326,7 @@ const Login = () => {
                 )}
               </div>
 
-              <div className="hidden md:flex md:space-x-2 ">
+              <div className="md:flex md:space-x-2 ">
                 <div className="flex flex-col space-y-1 mb-6  w-full">
                   <label htmlFor="password" className="font-medium text-sm">
                     Password
@@ -178,10 +334,12 @@ const Login = () => {
                   <div className="flex flex-col space-y-1">
                     <input
                       type="password"
-                      className={`w-full text-sm outline-none border border-slate-300  px-4 py-3 rounded-xl placeholder:text-[9px]`}
+                      className={`w-full text-sm outline-none border  px-4 py-3 rounded-xl placeholder:text-[9px] ${
+                        errors.password ? "border-red-500" : "border-slate-300"
+                      }`}
                       placeholder="********"
                       {...register("password", {
-                        required: true,
+                        required: "true",
                         pattern: /^(?=.*[A-Z])(?=.*\d).{8,20}$/,
                       })}
                     />
@@ -211,7 +369,11 @@ const Login = () => {
                   <div className="flex flex-col space-y-1">
                     <input
                       type="password"
-                      className={`w-full text-sm outline-none border border-slate-300  px-4 py-3 rounded-xl placeholder:text-[9px]`}
+                      className={`w-full text-sm outline-none border  px-4 py-3 rounded-xl placeholder:text-[9px] ${
+                        errors.confirmPassword
+                          ? "border-red-500"
+                          : "border-slate-300"
+                      } `}
                       placeholder="********"
                       {...register("confirmPassword", {
                         required: "true",
@@ -227,68 +389,22 @@ const Login = () => {
                   </div>
                 </div>
               </div>
-              <div className="md:hidden flex flex-col space-y-1 mb-6  w-full">
-                <label htmlFor="password" className="font-medium text-sm">
-                  Password
-                </label>
-                <div className="flex flex-col space-y-1">
-                  <input
-                    type="password"
-                    className={`w-full text-sm outline-none border border-slate-300  px-4 py-3 rounded-xl placeholder:text-[9px]`}
-                    placeholder="********"
-                    {...register("password", {
-                      required: true,
-                      pattern: /^(?=.*[A-Z])(?=.*\d).{8,20}$/,
-                    })}
-                  />
-                  {errors.password?.type === "required" ? (
-                    <span className="text-xs text-red-500">
-                      Password is required
-                    </span>
-                  ) : errors.password?.type === "pattern" ? (
-                    <>
-                      <span className="text-xs text-red-500 ">
-                        Password should contain an uppercase letter, a number
-                        and a should be between 8-12 characters
-                      </span>
-                    </>
-                  ) : (
-                    <></>
-                  )}
-                </div>
-              </div>
-              <div className="md:hidden flex flex-col space-y-1 mb-6  w-full">
-                <label
-                  htmlFor="confirmPassword"
-                  className="font-medium text-sm"
-                >
-                  Confirm Password
-                </label>
-                <div className="flex flex-col space-y-1">
-                  <input
-                    type="password"
-                    className={`w-full text-sm outline-none border border-slate-300  px-4 py-3 rounded-xl placeholder:text-[9px]`}
-                    placeholder="********"
-                    {...register("confirmPassword", {
-                      required: "true",
-
-                      validate: (value) => value === getValues("password"),
-                    })}
-                  />
-                  {errors.confirmPassword && (
-                    <span className="text-xs text-red-500">
-                      Passwords don't match
-                    </span>
-                  )}
-                </div>
-              </div>
 
               <div className="w-full ">
                 <button
                   type="submit"
-                  className={`outline-none text-sm mb-6  py-4 bg-black text-white rounded-xl w-full transition-colors duration-200 ease-linear `}
+                  className={`outline-none text-sm mb-6 flex justify-center py-3 bg-black text-white rounded-xl w-full transition-colors duration-200 ease-linear `}
                 >
-                  Sign Up
+                  {loading ? (
+                    <p className="text-red-500">
+                      {" "}
+                      <Spin />
+                    </p>
+                  ) : error ? (
+                    <BiErrorCircle className="text-2xl text-red-500" />
+                  ) : (
+                    <span>Sign Up</span>
+                  )}
                 </button>
               </div>
             </form>
@@ -313,4 +429,4 @@ const Login = () => {
   );
 };
 
-export default Login;
+export default Signup;
