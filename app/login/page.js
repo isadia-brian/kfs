@@ -1,19 +1,51 @@
 "use client";
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { signIn } from "next-auth/react";
-import { Switch } from "antd";
+import { Switch, notification, Spin } from "antd";
 import Image from "next/image";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { BiErrorCircle } from "react-icons/bi";
+import { BsCheckCircleFill } from "react-icons/bs";
 
 const Login = () => {
   const router = useRouter();
   const [error, setError] = useState("");
   const [inputError, setInputError] = useState(false);
-
+  const [disabled, setDisabled] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [iconError, setIconError] = useState(false);
   const [success, setSuccess] = useState(false);
+  const [api, contextHolder] = notification.useNotification();
+  const errorNotification = (type, message) => {
+    const notificationStyle = {
+      backgroundColor: "red",
+    };
+    api[type]({
+      message: <span className="text-white">Error</span>,
+      description: (
+        <span className="text-white font-bold text-[16px]">{message}</span>
+      ),
+      icon: <BiErrorCircle style={{ color: "#ffffff" }} />,
+      className: "custom-class",
+      style: notificationStyle,
+    });
+  };
+  const successNotification = (type, message) => {
+    const notificationStyle = {
+      backgroundColor: "green",
+    };
+    api[type]({
+      message: <span className="text-white">Success</span>,
+      description: (
+        <span className="text-white font-bold text-[16px]">{message}</span>
+      ),
+
+      className: "custom-class",
+      style: notificationStyle,
+    });
+  };
   const {
     register,
     handleSubmit,
@@ -21,7 +53,11 @@ const Login = () => {
     formState: { errors },
   } = useForm();
   const onSubmit = async ({ userAuth, password }) => {
+    let message;
+    setInputError(false);
+    setError("");
     setLoading(true);
+    setDisabled(true);
     const result = await signIn("credentials", {
       redirect: false,
       userAuth,
@@ -29,12 +65,20 @@ const Login = () => {
     });
 
     if (result.error) {
-      setError(result.error);
+      message = result.error;
+      setError(message);
+      errorNotification("error", message);
+      setIconError(true);
       setInputError(true);
       setLoading(false);
+      setTimeout(() => {
+        setIconError(false);
+        setDisabled(false);
+      }, 3000);
     } else {
       setLoading(false);
       setSuccess(true);
+      successNotification("success", "Successfully logged in");
       router.push("/student");
     }
   };
@@ -42,8 +86,10 @@ const Login = () => {
   const onChange = (checked) => {
     console.log(`switch to ${checked}`);
   };
+
   return (
     <div>
+      {contextHolder}
       <div className="flex items-center">
         <div className="hidden md:flex h-screen w-[55%]">
           <div className="relative h-full w-full">
@@ -166,9 +212,24 @@ const Login = () => {
               <div className="w-full ">
                 <button
                   type="submit"
-                  className="outline-none bg-black text-white text-sm  py-4 rounded-xl w-full"
+                  className={`outline-none text-sm mb-6 flex justify-center py-3  text-white rounded-xl w-full transition-colors duration-200 ease-linear ${
+                    disabled
+                      ? "bg-gray-400 cursor-not-allowed"
+                      : `${success ? "bg-green-500" : "bg-black"}`
+                  } `}
                 >
-                  Login
+                  {loading ? (
+                    <p className="text-red-500">
+                      {" "}
+                      <Spin />
+                    </p>
+                  ) : iconError ? (
+                    <BiErrorCircle className="text-2xl text-red-500" />
+                  ) : success ? (
+                    <BsCheckCircleFill className="text-xl " />
+                  ) : (
+                    <span className="py-1">Login</span>
+                  )}
                 </button>
               </div>
             </form>

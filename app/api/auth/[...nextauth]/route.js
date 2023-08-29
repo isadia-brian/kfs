@@ -35,7 +35,6 @@ export const authOptions = {
             if (!passwordMatch) {
               throw new Error("Invalid credentials");
             } else {
-              console.log("Passwords match");
               const returnedUser = user.toObject();
 
               const validateUser = {
@@ -47,6 +46,8 @@ export const authOptions = {
               };
               return { validateUser, apiToken: user.token };
             }
+          } else {
+            throw new Error("Invalid Credentials");
           }
         } else {
           throw new Error("Something went wrong");

@@ -5,16 +5,19 @@ import Image from "next/image";
 import { useForm } from "react-hook-form";
 import axios from "axios";
 import { BiErrorCircle } from "react-icons/bi";
-
+import { BsCheckCircleFill } from "react-icons/bs";
 import { notification, Spin } from "antd";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 
 const Signup = () => {
+  const router = useRouter();
   const [loading, setLoading] = useState(false);
+  const [trueValue, setTrueValue] = useState(false);
   const [errorStudentID, setErrorStudentID] = useState(false);
   const [errorUsername, setErrorUsername] = useState(false);
   const [errorEmail, setErrorEmail] = useState(false);
-  const [error, setError] = useState(false);
+  const [iconError, setIconError] = useState(false);
   const [success, setSuccess] = useState(false);
   const [disabled, setDisabled] = useState(false);
   const [api, contextHolder] = notification.useNotification();
@@ -51,12 +54,17 @@ const Signup = () => {
     handleSubmit,
     register,
     getValues,
+    watch,
     formState: { errors },
   } = useForm();
+
+  const watchStudent = watch("studentNumber", "");
+  console.log(watchStudent);
 
   const onSubmit = async (data) => {
     let message;
     setLoading(true);
+    setDisabled(true);
     const userDetails = {
       fullName: data["name"],
       studentNumber: data["studentNumber"],
@@ -66,11 +74,19 @@ const Signup = () => {
       password: data["password"],
     };
 
+    setErrorEmail(false);
+    setErrorStudentID(false);
+    setErrorUsername(false);
+
     try {
       const response = await axios.post("/api/users", userDetails);
       const success = response?.data?.message;
       setLoading(false);
+      setSuccess(true);
       successNotification("success", success);
+      setTimeout(() => {
+        router.push("/login");
+      }, 3000);
     } catch (error) {
       console.log(error);
       const errorResponseString = error?.response?.request?.responseText;
@@ -80,52 +96,92 @@ const Signup = () => {
         setErrorStudentID(true);
 
         setLoading(false);
-        setError(true);
+
+        setIconError(true);
         errorNotification("error", message);
         setTimeout(() => {
-          setErrorStudentID(false);
-          setError(false);
-        }, 1500);
+          setIconError(false);
+          setDisabled(false);
+        }, 3000);
       } else if (message === "This email has already been taken") {
         setErrorEmail(true);
+        setIconError(true);
         setLoading(false);
         errorNotification("error", message);
         setTimeout(() => {
-          setErrorEmail(false);
-          setError(false);
-        }, 1500);
+          setIconError(false);
+          setDisabled(false);
+        }, 3000);
       } else if (message === "This username has already been taken") {
         setErrorUsername(true);
+        setIconError(true);
         setLoading(false);
         errorNotification("error", message);
         setTimeout(() => {
-          setErrorUsername(false);
-          setError(false);
-        }, 1500);
+          setIconError(false);
+          setDisabled(false);
+        }, 3000);
       } else {
         message = "Something went wrong";
         setLoading(false);
-
         errorNotification("error", message);
         setTimeout(() => {
-          setError(false);
+          setIconError(false);
+          setDisabled(false);
         }, 1500);
       }
     }
   };
+
+  const studentPattern = /^kfs-2023-\d{3}-\d{3}-\d{3}$/;
+
+  const doesMatch = studentPattern.test(watchStudent);
+
+  useEffect(() => {
+    function getNameValue() {
+      if (doesMatch) {
+        setTrueValue(true);
+
+        console.log(trueValue);
+      } else {
+        setTrueValue(false);
+
+        console.log(trueValue);
+      }
+    }
+
+    getNameValue();
+  }, [trueValue, doesMatch]);
+
   return (
     <div>
       {contextHolder}
       <div className="flex items-center md:flex-row-reverse">
-        <div className="hidden md:flex md:h-screen w-[50%]">
+        <div className="hidden md:flex relative md:h-screen w-[50%]">
           <div className="relative h-full w-full">
             <Image
-              src="/images/image.jpg"
+              src="/images/image.webp"
               alt="student image"
               fill
               className="object-cover"
               priority="true"
             />
+          </div>
+          <div className="w-full mb-20 md:mb-12 absolute top-1/2 -translate-y-1/2 flex items-center justify-center">
+            <div className="relative h-28 w-28 px-2">
+              <Image
+                src="/images/signlogo.png"
+                fill
+                alt="logo"
+                className="object-cover "
+              />
+            </div>
+            <div className="">
+              <h3 className="font-black text-white text-3xl underline ">
+                KENYA FILM
+              </h3>
+              <h5 className="font-black text-white text-3xl -mt-2">SCHOOL</h5>
+            </div>
           </div>
         </div>
         <div className="h-full px-4 md:px-12 lg:px-20 w-full  md:w-[50%]">
@@ -194,7 +250,9 @@ const Signup = () => {
                     className={`w-full text-sm outline-none border  px-4 py-3 rounded-xl placeholder:text-[9px] ${
                       errors.studentNumber || errorStudentID
                         ? "border-red-500"
-                        : "border-slate-300"
+                        : `${
+                            trueValue ? "border-green-500" : "border-slate-300"
+                          }`
                     }`}
                     placeholder="kfs-2023-************"
                     {...register("studentNumber", {
@@ -393,15 +451,21 @@ const Signup = () => {
               <div className="w-full ">
                 <button
                   type="submit"
-                  className={`outline-none text-sm mb-6 flex justify-center py-3 bg-black text-white rounded-xl w-full transition-colors duration-200 ease-linear `}
+                  className={`outline-none text-sm mb-6 flex justify-center py-3  text-white rounded-xl w-full transition-colors duration-200 ease-linear ${
+                    disabled
+                      ? "bg-gray-400 cursor-not-allowed"
+                      : "bg-black cursor-pointer"
+                  } `}
                 >
                   {loading ? (
                     <p className="text-red-500">
                       {" "}
                       <Spin />
                     </p>
-                  ) : error ? (
+                  ) : iconError ? (
                     <BiErrorCircle className="text-2xl text-red-500" />
+                  ) : success ? (
+                    <BsCheckCircleFill className="text-xl " />
                   ) : (
                     <span>Sign Up</span>
                   )}
